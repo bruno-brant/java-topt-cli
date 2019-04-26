@@ -1,27 +1,12 @@
-package com.dreamsforge;/*
- * Copyright 2009 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package com.dreamsforge;
 
+import javax.crypto.Mac;
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
-
-import javax.crypto.Mac;
 
 /**
  * An implementation of the HOTP generator specified by RFC 4226. Generates
@@ -36,14 +21,8 @@ import javax.crypto.Mac;
 public class PasscodeGenerator {
   private static final int MAX_PASSCODE_LENGTH = 9;
 
-  /** Default time interval */
-  public static final int INTERVAL = OtpProvider.DEFAULT_INTERVAL;
-
   /** Default decimal passcode length */
   private static final int PASS_CODE_LENGTH = 6;
-
-  /** The number of previous and future intervals to check */
-  private static final int ADJACENT_INTERVALS = 1;
 
   /** Powers of 10 used to shorten the pin to the desired number of digits */
   private static final int[] DIGITS_POWER
@@ -59,9 +38,9 @@ public class PasscodeGenerator {
    */
   interface Signer {
     /**
-     * @param data Preimage to sign, represented as sequence of arbitrary bytes
+     * @param data Pre image to sign, represented as sequence of arbitrary bytes
      * @return Signature as sequence of bytes.
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException lança de vez em quando
      */
     byte[] sign(byte[] data) throws GeneralSecurityException;
   }
@@ -82,12 +61,7 @@ public class PasscodeGenerator {
    * @param passCodeLength The length of the decimal passcode
    */
   public PasscodeGenerator(final Mac mac, int passCodeLength) {
-    this(new Signer() {
-      @Override
-      public byte[] sign(byte[] data){
-        return mac.doFinal(data);
-      }
-    }, passCodeLength);
+    this(mac::doFinal, passCodeLength);
   }
 
   public PasscodeGenerator(Signer signer, int passCodeLength) {
@@ -101,11 +75,11 @@ public class PasscodeGenerator {
   }
 
   private String padOutput(int value) {
-    String result = Integer.toString(value);
+    StringBuilder result = new StringBuilder(Integer.toString(value));
     for (int i = result.length(); i < codeLength; i++) {
-      result = "0" + result;
+      result.insert(0, "0");
     }
-    return result;
+    return result.toString();
   }
 
   /**
@@ -113,7 +87,7 @@ public class PasscodeGenerator {
    * @return A decimal response code
    * @throws GeneralSecurityException If a JCE exception occur
    */
-  public String generateResponseCode(long state)
+  String generateResponseCode(long state)
       throws GeneralSecurityException {
     byte[] value = ByteBuffer.allocate(8).putLong(state).array();
     return generateResponseCode(value);
@@ -121,31 +95,11 @@ public class PasscodeGenerator {
 
 
   /**
-   * @param state 8-byte integer value representing internal OTP state.
-   * @param challenge Optional challenge as array of bytes.
-   * @return A decimal response code
-   * @throws GeneralSecurityException If a JCE exception occur
-   */
-  public String generateResponseCode(long state, byte[] challenge)
-      throws GeneralSecurityException {
-    if (challenge == null) {
-      return generateResponseCode(state);
-    } else {
-      // Allocate space for combination and store.
-      byte value[] = ByteBuffer.allocate(8 + challenge.length)
-                               .putLong(state)  // Write out OTP state
-                               .put(challenge, 0, challenge.length) // Concatenate with challenge.
-                               .array();
-      return generateResponseCode(value);
-    }
-  }
-
-  /**
    * @param challenge An arbitrary byte array used as a challenge
    * @return A decimal response code
    * @throws GeneralSecurityException If a JCE exception occur
    */
-  public String generateResponseCode(byte[] challenge)
+  private String generateResponseCode(byte[] challenge)
       throws GeneralSecurityException {
     byte[] hash = signer.sign(challenge);
 
@@ -177,57 +131,4 @@ public class PasscodeGenerator {
     return val;
   }
 
-  /**
-   * @param challenge A challenge to check a response against
-   * @param response A response to verify
-   * @return True if the response is valid
-   */
-  public boolean verifyResponseCode(long challenge, String response)
-      throws GeneralSecurityException {
-    String expectedResponse = generateResponseCode(challenge, null);
-    return expectedResponse.equals(response);
-  }
-
-  /**
-   * Verify a timeout code. The timeout code will be valid for a time
-   * determined by the interval period and the number of adjacent intervals
-   * checked.
-   *
-   * @param timeoutCode The timeout code
-   * @return True if the timeout code is valid
-   */
-  public boolean verifyTimeoutCode(long currentInterval, String timeoutCode)
-      throws GeneralSecurityException {
-    return verifyTimeoutCode(timeoutCode, currentInterval,
-                             ADJACENT_INTERVALS, ADJACENT_INTERVALS);
-  }
-
-  /**
-   * Verify a timeout code. The timeout code will be valid for a time
-   * determined by the interval period and the number of adjacent intervals
-   * checked.
-   *
-   * @param timeoutCode The timeout code
-   * @param pastIntervals The number of past intervals to check
-   * @param futureIntervals The number of future intervals to check
-   * @return True if the timeout code is valid
-   */
-  public boolean verifyTimeoutCode(String timeoutCode,
-                                   long currentInterval,
-                                   int pastIntervals,
-                                   int futureIntervals) throws GeneralSecurityException {
-    // Ensure that look-ahead and look-back counts are not negative.
-    pastIntervals = Math.max(pastIntervals, 0);
-    futureIntervals = Math.max(futureIntervals, 0);
-
-    // Try upto "pastIntervals" before current time, and upto "futureIntervals" after.
-    for (int i = -pastIntervals; i <= futureIntervals; ++i) {
-      String candidate = generateResponseCode(currentInterval - i, null);
-      if (candidate.equals(timeoutCode)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
 }

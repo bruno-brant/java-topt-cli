@@ -33,14 +33,13 @@ import java.util.Date;
  *
  * @author klyubin@google.com (Alex Klyubin)
  */
-public class NetworkTimeProvider {
+class NetworkTimeProvider {
 
-    private static final String LOG_TAG = NetworkTimeProvider.class.getSimpleName();
     private static final String URL = "https://www.google.com";
 
     private final HttpClient mHttpClient;
 
-    public NetworkTimeProvider(HttpClient httpClient) {
+    NetworkTimeProvider(HttpClient httpClient) {
         mHttpClient = httpClient;
     }
 
@@ -50,7 +49,7 @@ public class NetworkTimeProvider {
      * @return time (milliseconds since epoch).
      * @throws IOException if an I/O error occurs.
      */
-    public long getNetworkTime() throws IOException {
+    long getNetworkTime() throws IOException {
         HttpHead request = new HttpHead(URL);
         HttpResponse httpResponse;
         try {

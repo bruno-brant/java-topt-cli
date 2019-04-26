@@ -1,9 +1,9 @@
 package com.dreamsforge;
 
-public class Account {
-    public String email;
-    public String secret;
-    public AccountDb.OtpType type;
-    public Integer counter;
-    public String name;
+class Account {
+    String email;
+    String secret;
+    AccountDb.OtpType type;
+    Integer counter;
+    String name;
 }

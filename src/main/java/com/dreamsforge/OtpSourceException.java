@@ -19,12 +19,12 @@ package com.dreamsforge;/*
  *
  * @author klyubin@google.com (Alex Klyubin)
  */
-public class OtpSourceException extends Exception {
-  public OtpSourceException(String message) {
+class OtpSourceException extends Exception {
+  OtpSourceException(String message) {
     super(message);
   }
 
-  public OtpSourceException(String message, Throwable cause) {
+  OtpSourceException(String message, Throwable cause) {
     super(message, cause);
   }
 }

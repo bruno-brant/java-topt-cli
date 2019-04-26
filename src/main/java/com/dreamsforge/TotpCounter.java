@@ -1,18 +1,4 @@
-package com.dreamsforge;/*
- * Copyright 2011 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package com.dreamsforge;
 
 /**
  * Counter whose value is a deterministic function of time as described in RFC 6238
@@ -37,7 +23,7 @@ package com.dreamsforge;/*
  *
  * @author klyubin@google.com (Alex Klyubin)
  */
-public class TotpCounter {
+class TotpCounter {
 
   /** Interval of time (seconds) between successive changes of this counter's value. */
   private final long mTimeStep;
@@ -54,7 +40,7 @@ public class TotpCounter {
    *
    * @param timeStep interval of time (seconds) between successive changes of this counter's value.
    */
-  public TotpCounter(long timeStep) {
+  TotpCounter(long timeStep) {
     this(timeStep, 0);
   }
 
@@ -66,7 +52,7 @@ public class TotpCounter {
    * @param startTime the earliest time instant (seconds since UNIX epoch) at which this counter
    *        assumes the value {@code 0}.
    */
-  public TotpCounter(long timeStep, long startTime) {
+  private TotpCounter(long timeStep, long startTime) {
     if (timeStep < 1) {
       throw new IllegalArgumentException("Time step must be positive: " + timeStep);
     }
@@ -77,31 +63,13 @@ public class TotpCounter {
   }
 
   /**
-   * Gets the frequency with which the value of this counter changes.
-   *
-   * @return interval of time (seconds) between successive changes of this counter's value.
-   */
-  public long getTimeStep() {
-    return mTimeStep;
-  }
-
-  /**
-   * Gets the earliest time instant at which this counter assumes the value {@code 0}.
-   *
-   * @return time (seconds since UNIX epoch).
-   */
-  public long getStartTime() {
-    return mStartTime;
-  }
-
-  /**
    * Gets the value of this counter at the specified time.
    *
    * @param time time instant (seconds since UNIX epoch) for which to obtain the value.
    *
    * @return value of the counter at the {@code time}.
    */
-  public long getValueAtTime(long time) {
+  long getValueAtTime(long time) {
     assertValidTime(time);
 
     // According to the RFC:
@@ -125,17 +93,6 @@ public class TotpCounter {
     } else {
       return (timeSinceStartTime - (mTimeStep - 1)) / mTimeStep;
     }
-  }
-
-  /**
-   * Gets the time when the counter assumes the specified value.
-   *
-   * @param value value.
-   *
-   * @return earliest time instant (seconds since UNIX epoch) when the counter assumes the value.
-   */
-  public long getValueStartTime(long value) {
-    return mStartTime + (value * mTimeStep);
   }
 
   private static void assertValidTime(long time) {

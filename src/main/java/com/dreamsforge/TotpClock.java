@@ -22,14 +22,11 @@ import org.apache.http.impl.client.HttpClientBuilder;
  *
  * @author klyubin@google.com (Alex Klyubin)
  */
-public class TotpClock {
+class TotpClock {
 
     private NetworkTimeProvider timeProvider = new NetworkTimeProvider(HttpClientBuilder.create().build());
 
-    // @VisibleForTesting
-    static final String PREFERENCE_KEY_OFFSET_MINUTES = "timeCorrectionMinutes";
-
-//  private final SharedPreferences mPreferences;
+    //  private final SharedPreferences mPreferences;
 
     private final Object mLock = new Object();
 
@@ -41,7 +38,7 @@ public class TotpClock {
      */
     private Integer mCachedCorrectionMinutes;
 
-    public TotpClock() {
+    TotpClock() {
 //    mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 //    mPreferences.registerOnSharedPreferenceChangeListener(this);
     }
@@ -49,7 +46,7 @@ public class TotpClock {
     /**
      * Gets the number of milliseconds since epoch.
      */
-    public long currentTimeMillis() {
+    long currentTimeMillis() {
 
         long timeMillis;
 
@@ -67,7 +64,7 @@ public class TotpClock {
      *
      * @return number of minutes by which this device is behind the correct time.
      */
-    public int getTimeCorrectionMinutes() {
+    private int getTimeCorrectionMinutes() {
         synchronized (mLock) {
             if (mCachedCorrectionMinutes == null) {
                 try {
@@ -80,20 +77,7 @@ public class TotpClock {
         }
     }
 
-    /**
-     * Sets the currently used time correction value.
-     *
-     * @param minutes number of minutes by which this device is behind the correct time.
-     */
-    public void setTimeCorrectionMinutes(int minutes) {
-        synchronized (mLock) {
-            //mPreferences.edit().putInt(PREFERENCE_KEY_OFFSET_MINUTES, minutes).commit();
-            // Invalidate the cache to force reading actual settings from time to time
-            mCachedCorrectionMinutes = null;
-        }
-    }
-
-//  public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    //  public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 //    if (key.equals(PREFERENCE_KEY_OFFSET_MINUTES)) {
 //      // Invalidate the cache
 //      mCachedCorrectionMinutes = null;
